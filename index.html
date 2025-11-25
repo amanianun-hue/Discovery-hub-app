@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Recommendation System with Visuals</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+        }
+        .main-category-btn.active {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .sub-category-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+        .image-container {
+            /* Flex to center image within its container */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: auto; /* Allow height to adjust */
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl p-6 sm:p-10">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-indigo-700 mb-2">Discovery Hub (Now with Better Visual Mockups!)</h1>
+            <p class="text-gray-600">Find personalized recommendations with improved visual mockups of book covers, sports, and hobbies.</p>
+        </header>
+
+        <!-- Main Category Filter Buttons -->
+        <div class="flex flex-wrap justify-center gap-3 mb-6 border-b pb-4">
+            <button onclick="setMainFilter('All')" class="main-category-btn bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-full transition duration-300 shadow-lg active">
+                All Recommendations
+            </button>
+            <button onclick="setMainFilter('Kids')" class="main-category-btn bg-gray-200 hover:bg-indigo-100 text-gray-800 font-semibold py-2 px-6 rounded-full transition duration-300">
+                Kids
+            </button>
+            <button onclick="setMainFilter('Books')" class="main-category-btn bg-gray-200 hover:bg-indigo-100 text-gray-800 font-semibold py-2 px-6 rounded-full transition duration-300">
+                Books
+            </button>
+            <button onclick="setMainFilter('Sports')" class="main-category-btn bg-gray-200 hover:bg-indigo-100 text-gray-800 font-semibold py-2 px-6 rounded-full transition duration-300">
+                Sports
+            </button>
+            <button onclick="setMainFilter('Hobbies')" class="main-category-btn bg-gray-200 hover:bg-indigo-100 text-gray-800 font-semibold py-2 px-6 rounded-full transition duration-300">
+                Hobbies
+            </button>
+        </div>
+
+        <!-- Dynamic Sub-Filter Buttons Container -->
+        <div id="sub-filter-container" class="mb-8 p-4 bg-indigo-50 rounded-lg hidden">
+            <p class="text-sm font-semibold text-indigo-700 mb-2 text-center">Filter by Type:</p>
+            <div id="sub-filter-buttons" class="flex flex-wrap justify-center gap-2">
+                <!-- Sub-filters are injected here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Recommendation List Container -->
+        <div id="recommendation-list" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Recommendations will be injected here by JavaScript -->
+        </div>
+
+        <!-- Message Box for No Results -->
+        <div id="no-results-message" class="hidden text-center mt-10 p-5 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+            <p class="text-lg text-yellow-800 font-medium">No recommendations found matching your filters. Try widening your selection!</p>
+        </div>
+    </div>
+
+    <script>
+        // Data structure includes tags for sub-filtering (120 items total)
+        const allRecommendations = [
+            // --- KIDS (30 items) ---
+            { category: 'Kids', title: 'Dog Man: Twenty Thousand Fleas Under the Sea', description: 'Dav Pilkey\'s hilarious graphic novel series about a crime-fighting dog-human hybrid.', tags: ['comics', 'humor', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'Diary of a Wimpy Kid: Rodrick Rules', description: 'The second book in the popular middle-school humor series by Jeff Kinney.', tags: ['young-fiction', 'humor', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'Big Nate: Flips Out', description: 'A side-splitting series about an easily distracted sixth-grader, Nate Wright.', tags: ['comics', 'humor', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'The 13-Storey Treehouse', description: 'Australian humor series about two friends living in an ever-expanding treehouse.', tags: ['young-fiction', 'humor', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'Geronimo Stilton: The Kingdom of Fantasy', description: 'The adventure-packed series following the famous rodent journalist.', tags: ['adventure', 'mystery', 'ages-5-8', 'book-series'] },
+            { category: 'Kids', title: 'Captain Underpants', description: 'The iconic series about two mischievous boys and their superhero principal.', tags: ['comics', 'humor', 'ages-5-8', 'book-series'] },
+            { category: 'Kids', title: 'Naruto, Vol. 1: Uzumaki Naruto', description: 'The epic start to the manga about a young ninja with big dreams.', tags: ['manga', 'adventure', 'fantasy', 'ages-9-12', 'comics'] },
+            { category: 'Kids', title: 'Dragon Ball, Vol. 1: The Monkey King', description: 'Akira Toriyama\'s classic action-comedy manga about Goku and his adventures.', tags: ['manga', 'action', 'fantasy', 'ages-9-12', 'comics'] },
+            { category: 'Kids', title: 'Amulet: The Stonekeeper', description: 'A highly acclaimed graphic novel series featuring magic and strange new worlds.', tags: ['comics', 'fantasy', 'adventure', 'ages-9-12'] },
+            { category: 'Kids', title: 'Pokémon Adventures: Red and Blue', description: 'Manga based on the video games, following trainers and their quests.', tags: ['manga', 'adventure', 'ages-9-12', 'comics'] },
+            { category: 'Kids', title: 'Bone: Out from Boneville', description: 'Jeff Smith\'s sprawling, fantasy adventure told through comic book format.', tags: ['comics', 'fantasy', 'adventure', 'ages-9-12'] },
+            { category: 'Kids', title: 'Phoebe and Her Unicorn', description: 'A delightful comic strip collection about a girl and her vain unicorn best friend.', tags: ['comics', 'humor', 'ages-5-8'] },
+            { category: 'Kids', title: 'The Penderwicks', description: 'A delightful and heartwarming family adventure series.', tags: ['adventure', 'young-fiction', 'ages-9-12'] },
+            { category: 'Kids', title: 'Lego Building Challenge', description: 'A fun activity focused on open-ended creative construction.', tags: ['activities', 'creative', 'ages-5-8', 'indoor'] },
+            { category: 'Kids', title: 'Magic Tree House: Dinosaurs Before Dark', description: 'The start of the chapter book series about time-traveling siblings.', tags: ['adventure', 'book-series', 'ages-5-8'] },
+            { category: 'Kids', title: 'The Bad Guys', description: 'A funny, action-packed graphic novel series about reformed villains.', tags: ['comics', 'humor', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'Zoology', description: 'A colorful, highly engaging educational book about animals worldwide.', tags: ['educational', 'science', 'ages-5-8'] },
+            { category: 'Kids', title: 'Charlie and the Chocolate Factory', description: 'Roald Dahl\'s classic tale of a magical candy maker.', tags: ['classic', 'young-fiction', 'ages-9-12'] },
+            { category: 'Kids', title: 'Arts & Crafts (DIY Slime)', description: 'A hands-on activity for sensory play and simple chemistry.', tags: ['activities', 'diy', 'ages-5-8', 'indoor'] },
+            { category: 'Kids', title: 'The One and Only Ivan', description: 'A moving story told from the perspective of a gorilla.', tags: ['young-fiction', 'animal', 'ages-9-12'] },
+            { category: 'Kids', title: 'A to Z Mysteries', description: 'A simple mystery series perfect for emerging readers.', tags: ['mystery', 'book-series', 'ages-5-8'] },
+            { category: 'Kids', title: 'Spy School', description: 'A comedy-action series about a kid who accidentally gets recruited to a spy academy.', tags: ['adventure', 'humor', 'ages-9-12'] },
+            { category: 'Kids', title: 'The Baby-Sitters Club (Graphic Novels)', description: 'Classic series adapted into modern, colorful graphic novels.', tags: ['comics', 'social', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'National Geographic Kids Almanac', description: 'A yearly volume of facts, photos, and fun trivia.', tags: ['educational', 'science', 'ages-9-12'] },
+            { category: 'Kids', title: 'Go Fish (Card Game)', description: 'A simple, classic card game for all ages.', tags: ['activities', 'social', 'ages-5-8', 'indoor'] },
+            { category: 'Kids', title: 'Fairy Tale Science Projects', description: 'An activity book combining classic tales with simple science experiments.', tags: ['educational', 'science', 'activities', 'ages-5-8'] },
+            { category: 'Kids', title: 'Percy Jackson & The Olympians', description: 'Modern adventure series mixing Greek mythology and action.', tags: ['adventure', 'fantasy', 'ages-9-12', 'book-series'] },
+            { category: 'Kids', title: 'Press Here', description: 'An interactive picture book that encourages imagination and tapping.', tags: ['picture-book', 'interactive', 'ages-5-8'] },
+            { category: 'Kids', title: 'The Chronicles of Narnia: The Lion, the Witch and the Wardrobe', description: 'C.S. Lewis\'s classic fantasy adventure.', tags: ['fantasy', 'classic', 'ages-9-12'] },
+            { category: 'Kids', title: 'The Day the Crayons Came Home', description: 'A humorous picture book about demanding art supplies.', tags: ['picture-book', 'humor', 'ages-5-8'] },
+
+            // --- BOOKS (30 items) ---
+            { category: 'Books', title: 'Project Hail Mary', description: 'A gripping sci-fi tale of an astronaut saving Earth.', tags: ['sci-fi', 'adventure', 'thriller'] },
+            { category: 'Books', title: 'Sapiens', description: 'A brief history of humankind and its future.', tags: ['non-fiction', 'history', 'science'] },
+            { category: 'Books', title: 'The Silent Patient', description: 'A psychological thriller with a shocking twist.', tags: ['mystery', 'thriller', 'fiction'] },
+            { category: 'Books', title: 'Where the Crawdads Sing', description: 'A coming-of-age story and murder mystery.', tags: ['mystery', 'historical-fiction', 'romance'] },
+            { category: 'Books', title: 'Atomic Habits', description: 'A practical guide to building good habits.', tags: ['non-fiction', 'self-help', 'productivity'] },
+            { category: 'Books', title: 'The Martian', description: 'An inventive survival story of an astronaut stranded on Mars.', tags: ['sci-fi', 'survival', 'adventure'] },
+            { category: 'Books', title: 'Educated', description: 'A powerful memoir about pursuing education despite a difficult upbringing.', tags: ['non-fiction', 'memoir', 'inspirational'] },
+            { category: 'Books', title: '1984', description: 'A classic dystopian novel exploring totalitarian control.', tags: ['sci-fi', 'dystopian', 'political'] },
+            { category: 'Books', title: 'Circe', description: 'A beautiful mythological fiction retelling.', tags: ['fantasy', 'mythology', 'historical'] },
+            { category: 'Books', title: 'The Power of Now', description: 'A spiritual guide focusing on living in the present moment.', tags: ['non-fiction', 'spirituality', 'self-help'] },
+            { category: 'Books', title: 'Dune', description: 'An epic tale of politics, religion, and ecology.', tags: ['sci-fi', 'epic-sci-fi', 'fantasy'] },
+            { category: 'Books', title: 'Pride and Prejudice', description: 'Jane Austen\'s classic novel of manners and social critique.', tags: ['classic', 'romance', 'historical'] },
+            { category: 'Books', title: 'The Midnight Library', description: 'A woman gets a chance to live alternate versions of her life.', tags: ['fantasy', 'contemporary', 'philosophical'] },
+            { category: 'Books', title: 'The Alchemist', description: 'An allegorical novel about a shepherd boy pursuing his destiny.', tags: ['allegory', 'adventure', 'inspirational'] },
+            { category: 'Books', title: 'A Brief History of Time', description: 'Stephen Hawking\'s landmark explanation of cosmology and physics.', tags: ['non-fiction', 'science', 'physics'] },
+            { category: 'Books', title: 'Watchmen', description: 'A deconstruction of the superhero genre, hailed as a masterpiece.', tags: ['comics', 'mystery', 'superhero'] },
+            { category: 'Books', title: 'Sandman Vol. 1: Preludes & Nocturnes', description: 'Neil Gaiman\'s dark fantasy epic about the master of dreams.', tags: ['comics', 'fantasy', 'horror'] },
+            { category: 'Books', title: 'Maus', description: 'Art Spiegelman\'s Pulitzer Prize-winning graphic novel about the Holocaust.', tags: ['comics', 'history', 'memoir', 'non-fiction'] },
+            { category: 'Books', title: 'Persepolis', description: 'Marjane Satrapi\'s memoir of her childhood in Iran during the Islamic Revolution.', tags: ['comics', 'history', 'memoir', 'cultural'] },
+            { category: 'Books', title: 'Saga, Vol. 1', description: 'An epic space opera and fantasy adventure series for mature readers.', tags: ['comics', 'sci-fi', 'fantasy', 'romance'] },
+            { category: 'Books', title: 'The Girl with the Dragon Tattoo', description: 'The first book in the Millennium series, a dark crime thriller.', tags: ['mystery', 'crime', 'thriller'] },
+            { category: 'Books', title: 'Good Omens', description: 'A humorous fantasy novel about an angel and a demon.', tags: ['fantasy', 'humor', 'comedy'] },
+            { category: 'Books', title: 'Thinking, Fast and Slow', description: 'A deep dive into the two systems that drive the way we think.', tags: ['non-fiction', 'psychology', 'economics'] },
+            { category: 'Books', title: 'To Kill a Mockingbird', description: 'A powerful story addressing racial injustice.', tags: ['classic', 'social-issues', 'fiction'] },
+            { category: 'Books', title: 'The Name of the Wind', description: 'The first book of the Kingkiller Chronicle, a beloved high fantasy series.', tags: ['fantasy', 'high-fantasy', 'adventure'] },
+            { category: 'Books', title: 'Becoming', description: 'Michelle Obama\'s intimate memoir about her life and transformation.', tags: ['non-fiction', 'memoir', 'political'] },
+            { category: 'Books', title: 'The Road', description: 'A harrowing post-apocalyptic journey of a father and son.', tags: ['sci-fi', 'post-apocalyptic', 'survival'] },
+            { category: 'Books', title: 'Ready Player One', description: 'A nostalgic virtual reality adventure set in a dystopian future.', tags: ['sci-fi', 'pop-culture', 'adventure'] },
+            { category: 'Books', title: 'The Secret History', description: 'A dark academia novel about a group of classics students and a hidden murder.', tags: ['mystery', 'dark-academia', 'thriller'] },
+            { category: 'Books', title: 'Norse Mythology', description: 'Neil Gaiman\'s retelling of the great Norse myths and sagas.', tags: ['fantasy', 'mythology', 'short-stories'] },
+
+            // --- SPORTS (30 items) ---
+            { category: 'Sports', title: 'Bouldering', description: 'Climbing low walls without ropes. Great for strength and problem-solving.', tags: ['individual', 'strength', 'indoor', 'climbing'] },
+            { category: 'Sports', title: 'Ultimate Frisbee', description: 'Fast-paced, non-contact team sport combining running and throwing.', tags: ['team', 'cardio', 'outdoor'] },
+            { category: 'Sports', title: 'Cycling (Road)', description: 'Explore local paths and trails for endurance and sightseeing.', tags: ['individual', 'endurance', 'outdoor', 'cardio'] },
+            { category: 'Sports', title: 'Table Tennis', description: 'High-speed racket sport requiring quick reflexes and strategy.', tags: ['individual', 'indoor', 'reflexes'] },
+            { category: 'Sports', title: 'Swimming', description: 'A full-body, low-impact workout perfect for fitness and relaxation.', tags: ['individual', 'water', 'cardio', 'low-impact'] },
+            { category: 'Sports', title: 'Kayaking', description: 'Paddle along lakes, rivers, or the sea for an upper-body workout and nature viewing.', tags: ['individual', 'water', 'endurance', 'outdoor'] },
+            { category: 'Sports', title: 'Squash', description: 'An intense, fast-moving racket sport played in a four-walled court.', tags: ['individual', 'indoor', 'cardio', 'racket'] },
+            { category: 'Sports', title: 'Yoga', description: 'Focuses on posture, breathing, and flexibility.', tags: ['individual', 'indoor', 'low-impact', 'flexibility'] },
+            { category: 'Sports', title: 'Badminton', description: 'A classic racket sport, great for duos or teams, emphasizing agility.', tags: ['team', 'indoor', 'racket', 'agility'] },
+            { category: 'Sports', title: 'Trail Running', description: 'Running on hiking trails or unpaved paths for a varied and challenging workout.', tags: ['individual', 'endurance', 'outdoor', 'cardio'] },
+            { category: 'Sports', title: 'Surfing', description: 'Riding ocean waves, requiring balance and core strength.', tags: ['individual', 'water', 'balance', 'outdoor'] },
+            { category: 'Sports', title: 'Brazilian Jiu-Jitsu (BJJ)', description: 'A martial art and combat sport focused on grappling and ground fighting.', tags: ['individual', 'strength', 'combat', 'indoor'] },
+            { category: 'Sports', title: 'Golf', description: 'A precision club-and-ball sport played over a course.', tags: ['individual', 'outdoor', 'low-impact', 'precision'] },
+            { category: 'Sports', title: 'Pilates', description: 'A system of exercises focusing on core strength and posture.', tags: ['individual', 'indoor', 'core-strength', 'low-impact'] },
+            { category: 'Sports', title: 'Volleyball', description: 'A team sport where two teams separate by a net.', tags: ['team', 'jumping', 'outdoor'] },
+            { category: 'Sports', title: 'Fencing', description: 'A combat sport using sharp-pointed weapons.', tags: ['individual', 'indoor', 'combat', 'precision'] },
+            { category: 'Sports', title: 'Ice Skating', description: 'Gliding across ice, covering figures, speed, or hockey.', tags: ['individual', 'winter', 'balance', 'indoor'] },
+            { category: 'Sports', title: 'Hiking', description: 'Walking long distances in natural environments.', tags: ['individual', 'endurance', 'outdoor', 'nature'] },
+            { category: 'Sports', title: 'CrossFit', description: 'High-intensity functional movements, combining various disciplines.', tags: ['individual', 'strength', 'cardio', 'indoor'] },
+            { category: 'Sports', title: 'Tennis', description: 'A competitive racket sport played by two or four players.', tags: ['individual', 'outdoor', 'racket', 'cardio'] },
+            { category: 'Sports', title: 'Rock Climbing (Ropes)', description: 'Climbing high walls/cliffs with safety ropes.', tags: ['individual', 'strength', 'outdoor', 'climbing'] },
+            { category: 'Sports', title: 'Sailing', description: 'Harnessing the wind with a sail to navigate a boat.', tags: ['team', 'water', 'strategy', 'outdoor'] },
+            { category: 'Sports', title: 'Tai Chi', description: 'Gentle, flowing movements used for self-defense and health training.', tags: ['individual', 'indoor', 'low-impact', 'mind-body'] },
+            { category: 'Sports', title: 'Archery', description: 'The sport of shooting arrows with a bow.', tags: ['individual', 'precision', 'outdoor', 'focus'] },
+            { category: 'Sports', title: 'Basketball', description: 'A fast-paced team sport where two teams try to score points.', tags: ['team', 'jumping', 'cardio', 'indoor'] },
+            { category: 'Sports', title: 'Snowboarding', description: 'Riding down a snow-covered slope while standing on a board.', tags: ['individual', 'winter', 'balance', 'outdoor'] },
+            { category: 'Sports', title: 'Martial Arts (Karate/Tae Kwon Do)', description: 'Disciplined combat systems emphasizing striking and fitness.', tags: ['individual', 'combat', 'discipline', 'indoor'] },
+            { category: 'Sports', title: 'Orienteering', description: 'Navigation skills using a map and compass to find checkpoints.', tags: ['individual', 'navigation', 'outdoor', 'endurance'] },
+            { category: 'Sports', title: 'Rowing (Ergometer/Water)', description: 'A full-body workout that builds immense cardiovascular and muscular endurance.', tags: ['team', 'cardio', 'endurance', 'water'] },
+            { category: 'Sports', title: 'Inline Skating', description: 'Using skates with a single line of wheels for recreation or fitness.', tags: ['individual', 'balance', 'outdoor'] },
+
+            // --- HOBBIES (30 items) ---
+            { category: 'Hobbies', title: 'Digital Art', description: 'Create stunning illustrations and paintings on a tablet or computer.', tags: ['creative', 'digital', 'visual', 'indoor'] },
+            { category: 'Hobbies', title: 'Baking Sourdough', description: 'Cultivate a starter and bake artisanal bread from scratch.', tags: ['culinary', 'patience', 'home', 'indoor'] },
+            { category: 'Hobbies', title: 'Amateur Astronomy', description: 'Observe the night sky with a telescope and learn about constellations.', tags: ['science', 'outdoor', 'observation'] },
+            { category: 'Hobbies', title: 'Model Building', description: 'Assemble detailed plastic model kits requiring precision and painting.', tags: ['crafting', 'precision', 'visual', 'indoor'] },
+            { category: 'Hobbies', title: 'Learning a New Language', description: 'Use apps or courses to gain fluency in a foreign tongue.', tags: ['intellectual', 'communication', 'indoor'] },
+            { category: 'Hobbies', title: 'Calligraphy', description: 'The art of beautiful handwriting using specialized pens or brushes.', tags: ['creative', 'fine-motor', 'visual', 'indoor'] },
+            { category: 'Hobbies', title: 'Homebrewing Beer', description: 'Make your own craft beer, involving steps like sterilization and fermentation.', tags: ['culinary', 'science', 'patience', 'indoor'] },
+            { category: 'Hobbies', title: 'Wood Carving', description: 'Use simple tools to shape wood into detailed sculptures or objects.', tags: ['crafting', 'manual', 'detail', 'indoor'] },
+            { category: 'Hobbies', title: 'Coding/Programming', description: 'Learn to build websites, apps, or automate tasks.', tags: ['intellectual', 'digital', 'problem-solving', 'indoor'] },
+            { category: 'Hobbies', title: 'Gardening (Container)', description: 'Grow vegetables, herbs, or flowers in pots on a balcony or small patio.', tags: ['outdoor', 'nurturing', 'home'] },
+            { category: 'Hobbies', title: 'Photography', description: 'Capture images using composition, lighting, and technical camera knowledge.', tags: ['visual', 'technical', 'creative', 'outdoor'] },
+            { category: 'Hobbies', title: 'Knitting/Crocheting', description: 'Create fabric items using yarn and needles or a hook.', tags: ['textile', 'manual', 'relaxing', 'indoor'] },
+            { category: 'Hobbies', title: 'Genealogy', description: 'Research and trace your family history using historical records.', tags: ['research', 'history', 'intellectual', 'indoor'] },
+            { category: 'Hobbies', title: 'Playing a Musical Instrument', description: 'Practice and perform music on instruments like guitar, piano, or drums.', tags: ['music', 'practice', 'creative', 'indoor'] },
+            { category: 'Hobbies', title: 'Board Games', description: 'Strategy games, party games, and more, offering social interaction.', tags: ['social', 'strategy', 'intellectual', 'indoor'] },
+            { category: 'Hobbies', title: 'Lock Picking', description: 'The mechanical puzzle of opening a lock without a key.', tags: ['mechanical', 'problem-solving', 'detail', 'indoor'] },
+            { category: 'Hobbies', title: 'Terrarium Building', description: 'Creating miniature, self-sustaining ecosystems in glass containers.', tags: ['nature', 'crafting', 'home', 'indoor'] },
+            { category: 'Hobbies', title: 'Writing Fiction/Poetry', description: 'Crafting stories or poems to express creativity and imagination.', tags: ['creative', 'literary', 'imagination', 'indoor'] },
+            { category: 'Hobbies', title: 'Restoration (Furniture/Antiques)', description: 'Repairing and refinishing old items to give them new life.', tags: ['manual', 'diy', 'crafting', 'indoor'] },
+            { category: 'Hobbies', title: 'Geocaching', description: 'Using GPS coordinates to find hidden containers in the real world.', tags: ['outdoor', 'exploration', 'puzzle'] },
+            { category: 'Hobbies', title: 'Collecting Coins/Stamps', description: 'Collecting and cataloging philatelic or numismatic items.', tags: ['history', 'detail', 'collecting', 'indoor'] },
+            { category: 'Hobbies', title: 'Drone Piloting', description: 'Learning to safely fly and capture video/photos with remote-controlled aerial vehicles.', tags: ['technical', 'outdoor', 'digital'] },
+            { category: 'Hobbies', title: 'Mixology/Cocktail Making', description: 'The art and science of preparing flavorful mixed drinks.', tags: ['culinary', 'social', 'precision', 'indoor'] },
+            { category: 'Hobbies', title: 'Podcasting', description: 'Recording and editing audio content to share stories, knowledge, or interviews.', tags: ['digital', 'communication', 'audio', 'indoor'] },
+            { category: 'Hobbies', title: '3D Printing', description: 'Designing models and creating physical objects using a 3D printer.', tags: ['technical', 'design', 'crafting', 'indoor'] },
+            { category: 'Hobbies', title: 'Miniature Painting', description: 'Detail-oriented painting of small figurines used in tabletop games.', tags: ['detail', 'visual', 'patience', 'indoor'] },
+            { category: 'Hobbies', title: 'Bird Watching', description: 'Identifying and observing birds in their natural habitats.', tags: ['nature', 'patience', 'outdoor', 'observation'] },
+            { category: 'Hobbies', title: 'Chess/Go', description: 'Ancient abstract strategy games that demand high-level tactical thinking.', tags: ['intellectual', 'strategy', 'puzzle', 'indoor'] },
+            { category: 'Hobbies', title: 'Aquascaping', description: 'Designing and arranging aquatic plants, rocks, and wood in an aquarium.', tags: ['aquatic', 'design', 'visual', 'indoor'] },
+            { category: 'Hobbies', title: 'Scrapbooking', description: 'Creating personalized photo albums and memory books using paper craft.', tags: ['memory', 'creative', 'crafting', 'indoor'] }
+        ];
+
+        // Configuration for sub-filters
+        const subFilterConfig = {
+            'Kids': [
+                { name: 'Comics & Manga', tag: 'comics' },
+                { name: 'Humor & Fun', tag: 'humor' },
+                { name: 'Ages 5-8 (Early Readers)', tag: 'ages-5-8' },
+                { name: 'Ages 9-12 (Middle Grade)', tag: 'ages-9-12' },
+                { name: 'Adventure & Fantasy', tag: 'adventure' },
+            ],
+            'Books': [
+                { name: 'Sci-Fi & Dystopian', tag: 'sci-fi' },
+                { name: 'Mystery & Thriller', tag: 'mystery' },
+                { name: 'Comics & Graphic Novels', tag: 'comics' },
+                { name: 'Fantasy & Mythology', tag: 'fantasy' },
+                { name: 'Non-Fiction & History', tag: 'non-fiction' },
+            ],
+            'Sports': [
+                { name: 'Individual', tag: 'individual' },
+                { name: 'Team', tag: 'team' },
+                { name: 'Water & Winter', tag: 'water' },
+                { name: 'Strength & Combat', tag: 'strength' },
+                { name: 'Indoor Activities', tag: 'indoor' },
+            ],
+            'Hobbies': [
+                { name: 'Indoor', tag: 'indoor' },
+                { name: 'Outdoor', tag: 'outdoor' },
+                { name: 'Creative Arts', tag: 'creative' },
+                { name: 'Culinary & DIY', tag: 'culinary' },
+                { name: 'Intellectual & Digital', tag: 'intellectual' },
+            ]
+        };
+
+        const listContainer = document.getElementById('recommendation-list');
+        const noResultsMessage = document.getElementById('no-results-message');
+        const subFilterContainer = document.getElementById('sub-filter-container');
+        const subFilterButtons = document.getElementById('sub-filter-buttons');
+
+        let currentMainFilter = 'Kids'; // Default to Kids since we just updated it.
+        let currentSubFilter = 'All';
+
+        /**
+         * Generates a structured placeholder image URL based on the item category and title.
+         * @param {object} item - The recommendation object.
+         * @returns {string} The placeholder image URL.
+         */
+        function getPlaceholderUrl(item) {
+            // Use only the primary part of the title for shorter text on the image
+            const titlePart1 = item.title.split(': ')[0].split(', Vol. ')[0];
+            let titleText;
+            let width, height, bgColor, textColor, altText;
+
+            switch (item.category) {
+                case 'Kids':
+                    // Portrait/Book Cover style
+                    width = 120;
+                    height = 160;
+                    bgColor = '5C67C5'; // Muted Blue/Purple (Playful)
+                    textColor = 'F3F4F6'; // Light Gray
+                    
+                    // Text will be Title + Primary Tag
+                    const kidTag = item.tags.find(tag => tag.startsWith('ages-') || tag === 'comics' || tag === 'picture-book' || tag === 'humor') || item.category;
+                    titleText = `${titlePart1}|${kidTag.replace('-', ' ')}`;
+                    altText = `${item.title} Cover Mockup`;
+                    break;
+                case 'Books':
+                    // Portrait/Book Cover style
+                    width = 120;
+                    height = 160;
+                    bgColor = '2F4858'; // Dark Slate Blue (Serious)
+                    textColor = 'FFE6CC'; // Off-White
+                    
+                    // Text will be Title + Primary Tag
+                    const bookTag = item.tags.find(tag => ['sci-fi', 'mystery', 'fantasy', 'non-fiction', 'classic'].includes(tag)) || item.category;
+                    titleText = `${titlePart1}|${bookTag.replace('-', ' ')}`;
+                    altText = `${item.title} Cover Mockup`;
+                    break;
+                case 'Sports':
+                    // Landscape/Activity style
+                    width = 160;
+                    height = 100;
+                    bgColor = '008080'; // Teal (Active)
+                    textColor = 'E0FFFF'; // Light Cyan
+                    titleText = `${titlePart1}|Outdoor+Activity`;
+                    altText = `${item.title} Activity Mockup`;
+                    break;
+                case 'Hobbies':
+                    // Landscape/Activity style
+                    width = 160;
+                    height = 100;
+                    bgColor = '6A5ACD'; // Slate Blue (Creative)
+                    textColor = 'F0F8FF'; // Alice Blue
+                    titleText = `${titlePart1}|Creative+Pursuit`;
+                    altText = `${item.title} Activity Mockup`;
+                    break;
+                default:
+                    width = 150;
+                    height = 150;
+                    bgColor = '999999';
+                    textColor = 'FFFFFF';
+                    titleText = 'Image+Mockup';
+                    altText = 'Placeholder';
+            }
+
+            // Replace spaces with + and use %0A for the line break (using | as a separator in the function)
+            const encodedText = titleText.replace(/ /g, '+').replace(/\|/g, '%0A');
+
+            // Add new style parameters to placehold.co to make it look nicer 
+            return `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodedText}&font=Inter&alt=${altText}`;
+        }
+
+
+        /**
+         * Sets the main category filter, resets the sub-filter, and updates the UI.
+         * @param {string} category - The primary category.
+         */
+        function setMainFilter(category) {
+            currentMainFilter = category;
+            currentSubFilter = 'All'; // Reset sub-filter on main change
+            
+            // Update main button styles
+            document.querySelectorAll('.main-category-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'shadow-lg', 'active');
+                btn.classList.add('bg-gray-200', 'text-gray-800', 'hover:bg-indigo-100');
+                if (btn.textContent.includes(category)) {
+                    btn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'shadow-lg', 'active');
+                    btn.classList.remove('bg-gray-200', 'text-gray-800', 'hover:bg-indigo-100');
+                }
+            });
+
+            // Populate and show/hide sub-filters
+            renderSubFilters(category);
+            filterAndRender();
+        }
+
+        /**
+         * Renders the appropriate sub-filter buttons based on the main category.
+         * @param {string} category - The primary category.
+         */
+        function renderSubFilters(category) {
+            subFilterButtons.innerHTML = '';
+            
+            if (category === 'All' || !subFilterConfig[category]) {
+                subFilterContainer.classList.add('hidden');
+                return;
+            }
+
+            subFilterContainer.classList.remove('hidden');
+
+            // Add the "All" sub-filter option
+            let allSubButton = document.createElement('button');
+            allSubButton.textContent = `All ${category}`;
+            allSubButton.classList.add('sub-category-btn', 'bg-white', 'text-indigo-600', 'text-sm', 'font-medium', 'py-1.5', 'px-4', 'rounded-full', 'hover:bg-indigo-100', 'transition', 'duration-200', 'active');
+            allSubButton.onclick = () => setSubFilter('All');
+            subFilterButtons.appendChild(allSubButton);
+
+
+            // Add specific sub-filters
+            subFilterConfig[category].forEach(filter => {
+                let button = document.createElement('button');
+                button.textContent = filter.name;
+                button.classList.add('sub-category-btn', 'bg-white', 'text-indigo-600', 'text-sm', 'font-medium', 'py-1.5', 'px-4', 'rounded-full', 'hover:bg-indigo-100', 'transition', 'duration-200');
+                button.onclick = () => setSubFilter(filter.tag);
+                subFilterButtons.appendChild(button);
+            });
+        }
+
+        /**
+         * Sets the secondary sub-filter and updates the UI.
+         * @param {string} tag - The tag to filter by ('All' or a specific tag).
+         */
+        function setSubFilter(tag) {
+            currentSubFilter = tag;
+
+            // Update sub-button styles
+            document.querySelectorAll('.sub-category-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+                btn.classList.add('bg-white', 'text-indigo-600');
+            });
+
+            // Find the button matching the selected tag/name and activate it
+            Array.from(subFilterButtons.children).forEach(btn => {
+                const isAllButton = btn.textContent.startsWith('All');
+                // Check if the button's click handler contains the current tag
+                if ((tag === 'All' && isAllButton) || (!isAllButton && btn.onclick.toString().includes(`'${tag}'`))) {
+                    btn.classList.add('active', 'bg-indigo-600', 'text-white');
+                    btn.classList.remove('bg-white', 'text-indigo-600');
+                }
+            });
+
+            filterAndRender();
+        }
+
+        /**
+         * Applies both the main and sub filters and renders the results.
+         */
+        function filterAndRender() {
+            let filtered = allRecommendations;
+
+            // 1. Apply Main Category Filter
+            if (currentMainFilter !== 'All') {
+                filtered = filtered.filter(item => item.category === currentMainFilter);
+            }
+
+            // 2. Apply Sub-Category Filter (only if a category is selected and sub-filter is not 'All')
+            if (currentMainFilter !== 'All' && currentSubFilter !== 'All') {
+                // Special handling for the 'comics' tag in the Kids category to also include 'manga'
+                if (currentMainFilter === 'Kids' && currentSubFilter === 'comics') {
+                    filtered = filtered.filter(item => item.tags.includes('comics') || item.tags.includes('manga'));
+                } else {
+                    filtered = filtered.filter(item => item.tags.includes(currentSubFilter));
+                }
+            }
+            
+            renderRecommendations(filtered);
+        }
+
+        /**
+         * Renders the recommendations onto the UI.
+         * @param {Array<Object>} recommendationsArray - The filtered array of recommendations.
+         */
+        function renderRecommendations(recommendationsArray) {
+            listContainer.innerHTML = '';
+            
+            if (recommendationsArray.length === 0) {
+                listContainer.classList.add('hidden');
+                noResultsMessage.classList.remove('hidden');
+                return;
+            }
+
+            listContainer.classList.remove('hidden');
+            noResultsMessage.classList.add('hidden');
+
+            recommendationsArray.forEach(item => {
+                // Determine color and icon based on category
+                let colorClass, icon;
+                let textColorClass = 'text-gray-800';
+                switch (item.category) {
+                    case 'Kids':
+                        colorClass = 'bg-yellow-50 border-yellow-300';
+                        icon = '🎈';
+                        break;
+                    case 'Books':
+                        colorClass = 'bg-blue-50 border-blue-300';
+                        icon = '📚';
+                        break;
+                    case 'Sports':
+                        colorClass = 'bg-green-50 border-green-300';
+                        icon = '🏅';
+                        break;
+                    case 'Hobbies':
+                        colorClass = 'bg-purple-50 border-purple-300';
+                        icon = '🎨';
+                        break;
+                    default:
+                        colorClass = 'bg-gray-50 border-gray-300';
+                        icon = '✨';
+                }
+
+                const tagsHtml = item.tags.map(tag => 
+                    `<span class="inline-block bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full mr-1 mb-1 shadow-sm">${tag.replace('-', ' ')}</span>`
+                ).join('');
+
+                const imageUrl = getPlaceholderUrl(item);
+                const imageIsPortrait = item.category === 'Kids' || item.category === 'Books';
+
+                const cardHtml = `
+                    <div class="p-5 border ${colorClass} rounded-xl shadow-lg hover:shadow-xl transition duration-300 transform hover:scale-[1.02] cursor-default flex flex-col sm:flex-row">
+                        <!-- Image Container -->
+                        <div class="image-container flex-shrink-0 mb-4 sm:mb-0 sm:mr-4 ${imageIsPortrait ? 'w-full sm:w-1/3' : 'w-full sm:w-2/5'}">
+                            <img src="${imageUrl}" 
+                                 alt="${item.title} Visual Placeholder" 
+                                 class="rounded-lg shadow-xl ${imageIsPortrait ? 'w-24 h-32' : 'w-40 h-24'}"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/150x150/CCCCCC/000000?text=No+Image';">
+                        </div>
+
+                        <!-- Content Container -->
+                        <div class="flex-grow">
+                            <div class="flex items-center mb-1">
+                                <span class="text-xl mr-2">${icon}</span>
+                                <h2 class="text-lg font-bold ${textColorClass}">${item.title}</h2>
+                            </div>
+                            <p class="text-xs text-indigo-700 font-semibold mb-2">${item.category}</p>
+                            <p class="text-sm text-gray-600 mb-3">${item.description}</p>
+                            <div class="flex flex-wrap">${tagsHtml}</div>
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // Initialize the view when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start on the Kids category and render everything
+            setMainFilter(currentMainFilter);
+        });
+    </script>
+
+</body>
+</html>
+
